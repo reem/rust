@@ -502,20 +502,9 @@ probe CFG_LLDB             lldb
 
 if [ ! -z "$CFG_LLDB" ]
 then
-    # If CFG_LLDB_PYTHON_DIR is not already set from the outside and valid, try to read it from
-    # LLDB via the -P commandline options.
-    if [ -z "$CFG_LLDB_PYTHON_DIR" ] || [ ! -d "$CFG_LLDB_PYTHON_DIR" ]
-    then
-        CFG_LLDB_PYTHON_DIR=$($CFG_LLDB -P)
-
-        # If CFG_LLDB_PYTHON_DIR is not a valid directory, set it to something more readable
-        if [ ! -d "$CFG_LLDB_PYTHON_DIR" ]
-        then
-            CFG_LLDB_PYTHON_DIR="LLDB_PYTHON_DIRECTORY_NOT_FOUND"
-        fi
-
-        putvar CFG_LLDB_PYTHON_DIR
-    fi
+    # Try-branch hack
+    CFG_LLDB_PYTHON_DIR="/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/Resources/Python"
+    putvar CFG_LLDB_PYTHON_DIR
 fi
 
 step_msg "looking for target specific programs"

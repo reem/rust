@@ -176,10 +176,7 @@ check: cleantmptestlogs cleantestlibs check-notidy tidy
 check-notidy: cleantmptestlogs cleantestlibs all check-stage2
 	$(Q)$(CFG_PYTHON) $(S)src/etc/check-summary.py tmp/*.log
 
-check-lite: cleantestlibs cleantmptestlogs \
-	$(foreach crate,$(TEST_TARGET_CRATES),check-stage2-$(crate)) \
-	check-stage2-rpass \
-	check-stage2-rfail check-stage2-cfail check-stage2-rmake
+check-lite: cleantestlibs cleantmptestlogs check-stage1-debuginfo-lldb \
 	$(Q)$(CFG_PYTHON) $(S)src/etc/check-summary.py tmp/*.log
 
 check-ref: cleantestlibs cleantmptestlogs check-stage2-rpass \
