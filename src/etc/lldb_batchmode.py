@@ -32,7 +32,7 @@ import re
 import atexit
 
 # Set this to True for additional output
-DEBUG_OUTPUT = False
+DEBUG_OUTPUT = True
 
 def print_debug(s):
   "Print something if DEBUG_OUTPUT is True"
@@ -104,9 +104,12 @@ def execute_command(command_interpreter, command):
 
 def start_breakpoint_listener(target):
   "Listens for breakpoints being added and adds new ones to the callback registration list"
+
+  print_debug("Creating breakpoint listener object")
   listener = lldb.SBListener("breakpoint listener")
 
   def listen():
+    print_debug("Started listening...")
     event = lldb.SBEvent()
     try:
       while True:
@@ -122,8 +125,10 @@ def start_breakpoint_listener(target):
       print_debug("breakpoint listener shutting down")
 
   # Start the listener and let it run as a daemon
+  print_debug("Creating listener thread")
   listener_thread = threading.Thread(target = listen)
   listener_thread.daemon = True
+  print_debug("Starting listener thread")
   listener_thread.start()
 
   # Register the listener with the target
@@ -143,12 +148,12 @@ script_path = sys.argv[2]
 
 
 # Create a new debugger instance
-print("Creating LLDB debugger instance")
+print_debug("Creating LLDB debugger instance")
 debugger = lldb.SBDebugger.Create()
 
 # When we step or continue, don't return from the function until the process
 # stops. We do this by setting the async mode to false.
-print("Switching debugger to async mode")
+print_debug("Switching debugger to async mode")
 debugger.SetAsync(False)
 
 # Create a target from a file and arch
@@ -161,7 +166,7 @@ if not target:
 
 
 # Register the breakpoint callback for every breakpoint
-print("Starting breakpoint listener")
+print_debug("Starting breakpoint listener")
 start_breakpoint_listener(target)
 
 ### command_interpreter = debugger.GetCommandInterpreter()
