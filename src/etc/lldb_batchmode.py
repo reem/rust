@@ -147,35 +147,35 @@ debugger = lldb.SBDebugger.Create()
 
 # When we step or continue, don't return from the function until the process
 # stops. We do this by setting the async mode to false.
-debugger.SetAsync(False)
+### debugger.SetAsync(False)
 
 # Create a target from a file and arch
-print("Creating a target for '%s'" % target_path)
-target = debugger.CreateTargetWithFileAndArch(target_path, lldb.LLDB_ARCH_DEFAULT)
+### print("Creating a target for '%s'" % target_path)
+### target = debugger.CreateTargetWithFileAndArch(target_path, lldb.LLDB_ARCH_DEFAULT)
 
-if not target:
-  print("Could not create debugging target '" + target_path + "'. Aborting.", file=sys.stderr)
-  sys.exit(1)
+### if not target:
+###   print("Could not create debugging target '" + target_path + "'. Aborting.", file=sys.stderr)
+###   sys.exit(1)
 
 
 # Register the breakpoint callback for every breakpoint
-start_breakpoint_listener(target)
+### start_breakpoint_listener(target)
 
-command_interpreter = debugger.GetCommandInterpreter()
+### command_interpreter = debugger.GetCommandInterpreter()
 
-try:
-  script_file = open(script_path, 'r')
-
-  for line in script_file:
-    command = line.strip()
-    if command != '':
-      execute_command(command_interpreter, command)
-
-except IOError as e:
-  print("Could not read debugging script '%s'." % script_path, file = sys.stderr)
-  print(e, file = sys.stderr)
-  print("Aborting.", file = sys.stderr)
-  sys.exit(1)
-finally:
-  script_file.close()
+### try:
+###   script_file = open(script_path, 'r')
+###
+###   for line in script_file:
+###     command = line.strip()
+###     if command != '':
+###       execute_command(command_interpreter, command)
+###
+### except IOError as e:
+###   print("Could not read debugging script '%s'." % script_path, file = sys.stderr)
+###   print(e, file = sys.stderr)
+###   print("Aborting.", file = sys.stderr)
+###   sys.exit(1)
+### finally:
+###   script_file.close()
 
