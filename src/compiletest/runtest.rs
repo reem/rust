@@ -545,17 +545,17 @@ fn run_debuginfo_lldb_test(config: &Config, props: &TestProps, testfile: &Path) 
     script_str.push_str("version\n");
 
     // Switch LLDB into "Rust mode"
-    let rust_formatters_postfix = Path::new("./src/etc/lldb_rust_formatters.py");
-    let lldb_rust_formatters = rust_src_root.join(rust_formatters_postfix);
+    // let rust_formatters_postfix = Path::new("./src/etc/lldb_rust_formatters.py");
+    // let lldb_rust_formatters = rust_src_root.join(rust_formatters_postfix);
 
-    script_str.push_str("command script import ");
-    script_str.push_str(lldb_rust_formatters.as_str()
-        .expect("Could not convert lldb_rust_formatters path to UTF-8"));
-    script_str.push_str("\n");
-    script_str.push_str("type summary add --no-value ");
-    script_str.push_str("--python-function lldb_rust_formatters.print_val ");
-    script_str.push_str("-x \".*\" --category Rust\n");
-    script_str.push_str("type category enable Rust\n");
+    // script_str.push_str("command script import ");
+    // script_str.push_str(lldb_rust_formatters.as_str()
+    //     .expect("Could not convert lldb_rust_formatters path to UTF-8"));
+    // script_str.push_str("\n");
+    // script_str.push_str("type summary add --no-value ");
+    // script_str.push_str("--python-function lldb_rust_formatters.print_val ");
+    // script_str.push_str("-x \".*\" --category Rust\n");
+    // script_str.push_str("type category enable Rust\n");
 
     // Set breakpoints on every line that contains the string "#break"
     for line in breakpoint_lines.iter() {

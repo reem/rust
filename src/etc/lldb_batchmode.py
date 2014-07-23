@@ -113,7 +113,7 @@ def start_breakpoint_listener(target):
     event = lldb.SBEvent()
     wait_count = 0
     try:
-      while wait_count < 15:
+      while wait_count < 5:
         if listener.WaitForEvent(1, event):
           if lldb.SBBreakpoint.EventIsBreakpointEvent(event) and \
              lldb.SBBreakpoint.GetBreakpointEventTypeFromEvent(event) == \
@@ -171,21 +171,19 @@ if not target:
 print_debug("Starting breakpoint listener")
 start_breakpoint_listener(target)
 
-### command_interpreter = debugger.GetCommandInterpreter()
+command_interpreter = debugger.GetCommandInterpreter()
 
-### try:
-###   script_file = open(script_path, 'r')
-###
-###   for line in script_file:
-###     command = line.strip()
-###     if command != '':
-###       execute_command(command_interpreter, command)
-###
-### except IOError as e:
-###   print("Could not read debugging script '%s'." % script_path, file = sys.stderr)
-###   print(e, file = sys.stderr)
-###   print("Aborting.", file = sys.stderr)
-###   sys.exit(1)
-### finally:
-###   script_file.close()
+try:
+  script_file = open(script_path, 'r')
+  for line in script_file:
+    command = line.strip()
+    if command != '':
+      execute_command(command_interpreter, command)
+except IOError as e:
+  print("Could not read debugging script '%s'." % script_path, file = sys.stderr)
+  print(e, file = sys.stderr)
+  print("Aborting.", file = sys.stderr)
+  sys.exit(1)
+finally:
+  script_file.close()
 
