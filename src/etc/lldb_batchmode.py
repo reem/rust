@@ -143,19 +143,21 @@ script_path = sys.argv[2]
 
 
 # Create a new debugger instance
+print("Creating LLDB debugger instance")
 debugger = lldb.SBDebugger.Create()
 
 # When we step or continue, don't return from the function until the process
 # stops. We do this by setting the async mode to false.
-### debugger.SetAsync(False)
+print("Switching debugger to async mode")
+debugger.SetAsync(False)
 
 # Create a target from a file and arch
-### print("Creating a target for '%s'" % target_path)
-### target = debugger.CreateTargetWithFileAndArch(target_path, lldb.LLDB_ARCH_DEFAULT)
+print("Creating a target for '%s'" % target_path)
+target = debugger.CreateTargetWithFileAndArch(target_path, lldb.LLDB_ARCH_DEFAULT)
 
-### if not target:
-###   print("Could not create debugging target '" + target_path + "'. Aborting.", file=sys.stderr)
-###   sys.exit(1)
+if not target:
+  print("Could not create debugging target '" + target_path + "'. Aborting.", file=sys.stderr)
+  sys.exit(1)
 
 
 # Register the breakpoint callback for every breakpoint
