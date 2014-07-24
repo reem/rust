@@ -120,8 +120,8 @@ def start_breakpoint_listener(target):
              lldb.eBreakpointEventTypeAdded:
             global new_breakpoints
             breakpoint = lldb.SBBreakpoint.GetBreakpointFromEvent(event)
-            print_debug("breakpoint added, id = " + str(breakpoint.id))
-            new_breakpoints.append(breakpoint.id)
+            print_debug("breakpoint added (not really...), id = " + str(breakpoint.id))
+            # new_breakpoints.append(breakpoint.id)
         wait_count += 1
     except:
       print_debug("breakpoint listener shutting down")
