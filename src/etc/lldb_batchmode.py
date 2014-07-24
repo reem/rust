@@ -30,6 +30,7 @@ import sys
 import threading
 import re
 import atexit
+import time
 
 # Set this to True for additional output
 DEBUG_OUTPUT = True
@@ -81,6 +82,8 @@ def execute_command(command_interpreter, command):
       if res.HasResult():
           print(normalize_whitespace(res.GetOutput()), end = '\n')
 
+      time.sleep(0.2)
+
       # If the command introduced any breakpoints, make sure to register them with the breakpoint
       # callback
       while len(new_breakpoints) > 0:
@@ -92,7 +95,7 @@ def execute_command(command_interpreter, command):
         else:
           print_debug("registering breakpoint callback, id = " + str(breakpoint_id))
           callback_command = "breakpoint command add -F breakpoint_callback " + str(breakpoint_id)
-          # command_interpreter.HandleCommand(callback_command, res)
+          command_interpreter.HandleCommand(callback_command, res)
           if res.Succeeded():
             print_debug("successfully registered breakpoint callback, id = " + str(breakpoint_id))
             registered_breakpoints.add(breakpoint_id)
@@ -121,7 +124,7 @@ def start_breakpoint_listener(target):
             global new_breakpoints
             breakpoint = lldb.SBBreakpoint.GetBreakpointFromEvent(event)
             print_debug("breakpoint added (not really...), id = " + str(breakpoint.id))
-            new_breakpoints.append(breakpoint.id)
+            # new_breakpoints.append(breakpoint.id)
         wait_count += 1
     except:
       print_debug("breakpoint listener shutting down")
