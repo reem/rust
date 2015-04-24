@@ -55,6 +55,22 @@ impl<T> !Send for *const T { }
 impl<T> !Send for *mut T { }
 impl !Send for Managed { }
 
+/// Types which are safe to leak.
+#[unstable(feature = "leak")]
+#[lang="leak"]
+#[rustc_on_unimplemented = "`{Self}` cannot be leaked."]
+#[cfg(not(stage0))]
+pub unsafe trait Leak { }
+
+/// Types which are safe to leak.
+#[unstable(feature = "leak")]
+#[lang="leak"]
+#[rustc_on_unimplemented = "`{Self}` cannot be leaked."]
+#[cfg(stage0)]
+pub unsafe trait Leak: MarkerTrait { }
+
+unsafe impl Leak for .. { }
+
 /// Types with a constant size known at compile-time.
 #[stable(feature = "rust1", since = "1.0.0")]
 #[lang="sized"]
