@@ -41,6 +41,7 @@
 #![feature(str_char)]
 #![feature(into_cow)]
 #![feature(slice_patterns)]
+#![feature(leak)]
 #![cfg_attr(test, feature(test))]
 
 #![allow(trivial_casts)]

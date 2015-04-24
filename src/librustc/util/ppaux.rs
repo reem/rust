@@ -783,11 +783,12 @@ impl<'tcx> Repr<'tcx> for ty::BuiltinBounds {
         let mut res = Vec::new();
         for b in self {
             res.push(match b {
-                ty::BoundSend => "Send".to_string(),
-                ty::BoundSized => "Sized".to_string(),
-                ty::BoundCopy => "Copy".to_string(),
-                ty::BoundSync => "Sync".to_string(),
-            });
+                ty::BoundSend => "Send",
+                ty::BoundSized => "Sized",
+                ty::BoundCopy => "Copy",
+                ty::BoundSync => "Sync",
+                ty::BoundLeak => "Leak"
+            }.to_string());
         }
         res.connect("+")
     }
@@ -1179,11 +1180,12 @@ impl<'tcx> Repr<'tcx> for ty::BuiltinBound {
 impl<'tcx> UserString<'tcx> for ty::BuiltinBound {
     fn user_string(&self, _tcx: &ctxt) -> String {
         match *self {
-            ty::BoundSend => "Send".to_string(),
-            ty::BoundSized => "Sized".to_string(),
-            ty::BoundCopy => "Copy".to_string(),
-            ty::BoundSync => "Sync".to_string(),
-        }
+            ty::BoundSend => "Send",
+            ty::BoundSized => "Sized",
+            ty::BoundCopy => "Copy",
+            ty::BoundSync => "Sync",
+            ty::BoundLeak => "Leak",
+        }.to_string()
     }
 }
 

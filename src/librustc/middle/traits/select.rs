@@ -858,6 +858,7 @@ impl<'cx, 'tcx> SelectionContext<'cx, 'tcx> {
 
             Some(ty::BoundSend) |
             Some(ty::BoundSync) |
+            Some(ty::BoundLeak) |
             None => {
                 try!(self.assemble_closure_candidates(obligation, &mut candidates));
                 try!(self.assemble_fn_pointer_candidates(obligation, &mut candidates));
@@ -1268,7 +1269,9 @@ impl<'cx, 'tcx> SelectionContext<'cx, 'tcx> {
             let poly_trait_ref = match self_ty.sty {
                 ty::ty_trait(ref data) => {
                     match self.tcx().lang_items.to_builtin_kind(obligation.predicate.def_id()) {
-                        Some(bound @ ty::BoundSend) | Some(bound @ ty::BoundSync) => {
+                        Some(bound @ ty::BoundSend)
+                            | Some(bound @ ty::BoundSync)
+                            | Some(bound @ ty::BoundLeak) => {
                             if data.bounds.builtin_bounds.contains(&bound) {
                                 debug!("assemble_candidates_from_object_ty: matched builtin bound, \
                                         pushing candidate");
@@ -1470,8 +1473,8 @@ impl<'cx, 'tcx> SelectionContext<'cx, 'tcx> {
 
                     ty::BoundSized => ok_if(Vec::new()),
 
-                    ty::BoundSync | ty::BoundSend => {
-                        self.tcx().sess.bug("Send/Sync shouldn't occur in builtin_bounds()");
+                    ty::BoundSync | ty::BoundSend | ty::BoundLeak => {
+                        self.tcx().sess.bug("Send/Sync/Leak shouldn't occur in builtin_bounds()");
                     }
                 }
             }
@@ -1480,8 +1483,8 @@ impl<'cx, 'tcx> SelectionContext<'cx, 'tcx> {
                 match bound {
                     ty::BoundCopy | ty::BoundSized => ok_if(Vec::new()),
 
-                    ty::BoundSync | ty::BoundSend => {
-                        self.tcx().sess.bug("Send/Sync shouldn't occur in builtin_bounds()");
+                    ty::BoundSync | ty::BoundSend | ty::BoundLeak => {
+                        self.tcx().sess.bug("Send/Sync/Leak shouldn't occur in builtin_bounds()");
                     }
                 }
             }
@@ -1508,8 +1511,8 @@ impl<'cx, 'tcx> SelectionContext<'cx, 'tcx> {
                             Err(Unimplemented)
                         }
                     }
-                    ty::BoundSync | ty::BoundSend => {
-                        self.tcx().sess.bug("Send/Sync shouldn't occur in builtin_bounds()");
+                    ty::BoundSync | ty::BoundSend | ty::BoundLeak => {
+                        self.tcx().sess.bug("Send/Sync/Leak shouldn't occur in builtin_bounds()");
                     }
                 }
             }
@@ -1529,8 +1532,8 @@ impl<'cx, 'tcx> SelectionContext<'cx, 'tcx> {
 
                     ty::BoundSized => ok_if(Vec::new()),
 
-                    ty::BoundSync | ty::BoundSend => {
-                        self.tcx().sess.bug("Send/Sync shouldn't occur in builtin_bounds()");
+                    ty::BoundSync | ty::BoundSend | ty::BoundLeak => {
+                        self.tcx().sess.bug("Send/Sync/Leak shouldn't occur in builtin_bounds()");
                     }
                 }
             }
@@ -1556,8 +1559,8 @@ impl<'cx, 'tcx> SelectionContext<'cx, 'tcx> {
                         }
                     }
 
-                    ty::BoundSync | ty::BoundSend => {
-                        self.tcx().sess.bug("Send/Sync shouldn't occur in builtin_bounds()");
+                    ty::BoundSync | ty::BoundSend | ty::BoundLeak => {
+                        self.tcx().sess.bug("Send/Sync/Leak shouldn't occur in builtin_bounds()");
                     }
                 }
             }
@@ -1565,8 +1568,8 @@ impl<'cx, 'tcx> SelectionContext<'cx, 'tcx> {
             ty::ty_str => {
                 // Equivalent to [u8]
                 match bound {
-                    ty::BoundSync | ty::BoundSend => {
-                        self.tcx().sess.bug("Send/Sync shouldn't occur in builtin_bounds()");
+                    ty::BoundSync | ty::BoundSend | ty::BoundLeak => {
+                        self.tcx().sess.bug("Send/Sync/Leak shouldn't occur in builtin_bounds()");
                     }
 
                     ty::BoundCopy | ty::BoundSized => Err(Unimplemented),
@@ -1674,7 +1677,7 @@ impl<'cx, 'tcx> SelectionContext<'cx, 'tcx> {
                 ty::BoundSized => ok_if(types),
 
                 // Shouldn't be coming through here.
-                ty::BoundSend | ty::BoundSync => unreachable!(),
+                ty::BoundSend | ty::BoundSync | ty::BoundLeak => unreachable!(),
             }
         }
     }

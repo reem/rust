@@ -1581,6 +1581,7 @@ pub enum BuiltinBound {
     BoundSized,
     BoundCopy,
     BoundSync,
+    BoundLeak
 }
 
 pub fn empty_builtin_bounds() -> BuiltinBounds {
@@ -1592,6 +1593,7 @@ pub fn all_builtin_bounds() -> BuiltinBounds {
     set.insert(BoundSend);
     set.insert(BoundSized);
     set.insert(BoundSync);
+    set.insert(BoundLeak);
     set
 }
 
@@ -3768,7 +3770,7 @@ pub fn type_contents<'tcx>(cx: &ctxt<'tcx>, ty: Ty<'tcx>) -> TypeContents {
         let mut tc = TC::All - TC::InteriorParam;
         for bound in &bounds.builtin_bounds {
             tc = tc - match bound {
-                BoundSync | BoundSend | BoundCopy => TC::None,
+                BoundSync | BoundSend | BoundCopy | BoundLeak => TC::None,
                 BoundSized => TC::Nonsized,
             };
         }

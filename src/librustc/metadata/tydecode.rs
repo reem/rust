@@ -911,6 +911,9 @@ fn parse_builtin_bounds_<F>(st: &mut PState, _conv: &mut F) -> ty::BuiltinBounds
             'T' => {
                 builtin_bounds.insert(ty::BoundSync);
             }
+            'L' => {
+                builtin_bounds.insert(ty::BoundLeak);
+            }
             '.' => {
                 return builtin_bounds;
             }

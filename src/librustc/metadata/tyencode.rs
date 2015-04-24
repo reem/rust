@@ -370,6 +370,7 @@ pub fn enc_builtin_bounds(w: &mut Encoder, _cx: &ctxt, bs: &ty::BuiltinBounds) {
             ty::BoundSized => mywrite!(w, "Z"),
             ty::BoundCopy => mywrite!(w, "P"),
             ty::BoundSync => mywrite!(w, "T"),
+            ty::BoundLeak => mywrite!(w, "L"),
         }
     }
 

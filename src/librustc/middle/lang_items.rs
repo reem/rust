@@ -98,6 +98,7 @@ impl LanguageItems {
             ty::BoundSized => self.require(SizedTraitLangItem),
             ty::BoundCopy => self.require(CopyTraitLangItem),
             ty::BoundSync => self.require(SyncTraitLangItem),
+            ty::BoundLeak => self.require(LeakTraitLangItem),
         }
     }
 
@@ -110,6 +111,8 @@ impl LanguageItems {
             Some(ty::BoundCopy)
         } else if Some(id) == self.sync_trait() {
             Some(ty::BoundSync)
+        } else if Some(id) == self.leak_trait() {
+            Some(ty::BoundLeak)
         } else {
             None
         }
@@ -263,6 +266,7 @@ lets_do_this! {
     SizedTraitLangItem,              "sized",                   sized_trait;
     CopyTraitLangItem,               "copy",                    copy_trait;
     SyncTraitLangItem,               "sync",                    sync_trait;
+    LeakTraitLangItem,               "leak",                    leak_trait;
 
     DropTraitLangItem,               "drop",                    drop_trait;
 
