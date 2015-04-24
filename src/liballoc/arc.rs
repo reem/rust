@@ -77,6 +77,7 @@ use core::atomic;
 use core::atomic::Ordering::{Relaxed, Release, Acquire, SeqCst};
 use core::fmt;
 use core::cmp::Ordering;
+use core::marker::Leak;
 use core::mem::{min_align_of, size_of};
 use core::mem;
 use core::nonzero::NonZero;
@@ -161,6 +162,33 @@ unsafe impl<T: Sync + Send> Send for ArcInner<T> {}
 unsafe impl<T: Sync + Send> Sync for ArcInner<T> {}
 
 impl<T> Arc<T> {
+    /// Constructs a new `Arc<T>`, even for types which cannot be leaked.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// use std::marker::Leak;
+    ///
+    /// struct X { field: i32 }
+    /// impl !Leak for X { }
+    ///
+    /// let five = unsafe { Arc::new_leak(X { field: 5 }); }
+    /// ```
+    #[inline]
+    pub unsafe fn new_leak(data: T) -> Arc<T> {
+        // Start the weak pointer count as 1 which is the weak pointer that's
+        // held by all the strong pointers (kinda), see std/rc.rs for more info
+        let x: Box<_> = box ArcInner {
+            strong: atomic::AtomicUsize::new(1),
+            weak: atomic::AtomicUsize::new(1),
+            data: data,
+        };
+        Arc { _ptr: NonZero::new(mem::transmute(x)) }
+    }
+}
+
+impl<T: Leak> Arc<T> {
     /// Constructs a new `Arc<T>`.
     ///
     /// # Examples
@@ -173,14 +201,7 @@ impl<T> Arc<T> {
     #[inline]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn new(data: T) -> Arc<T> {
-        // Start the weak pointer count as 1 which is the weak pointer that's
-        // held by all the strong pointers (kinda), see std/rc.rs for more info
-        let x: Box<_> = box ArcInner {
-            strong: atomic::AtomicUsize::new(1),
-            weak: atomic::AtomicUsize::new(1),
-            data: data,
-        };
-        Arc { _ptr: unsafe { NonZero::new(mem::transmute(x)) } }
+        unsafe { Arc::new_leak(data) }
     }
 
     /// Downgrades the `Arc<T>` to a `Weak<T>` reference.
@@ -346,7 +367,7 @@ impl<T: Clone> Arc<T> {
         // either kind.
         if self.inner().strong.load(SeqCst) != 1 ||
            self.inner().weak.load(SeqCst) != 1 {
-            *self = Arc::new((**self).clone())
+            *self = unsafe { Arc::new_leak((**self).clone()) }
         }
         // As with `get_mut()`, the unsafety is ok because our reference was
         // either unique to begin with, or became one upon cloning the contents.
@@ -675,7 +696,7 @@ impl<T> fmt::Pointer for Arc<T> {
 }
 
 #[stable(feature = "rust1", since = "1.0.0")]
-impl<T: Default> Default for Arc<T> {
+impl<T: Default + Leak> Default for Arc<T> {
     #[stable(feature = "rust1", since = "1.0.0")]
     fn default() -> Arc<T> { Arc::new(Default::default()) }
 }

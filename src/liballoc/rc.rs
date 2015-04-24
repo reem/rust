@@ -159,7 +159,7 @@ use core::cmp::{PartialEq, PartialOrd, Eq, Ord, Ordering};
 use core::default::Default;
 use core::fmt;
 use core::hash::{Hasher, Hash};
-use core::marker;
+use core::marker::{self, Leak};
 use core::mem::{self, min_align_of, size_of, forget};
 use core::nonzero::NonZero;
 use core::ops::{Deref, Drop};
@@ -193,7 +193,7 @@ impl<T> !marker::Send for Rc<T> {}
 
 impl<T> !marker::Sync for Rc<T> {}
 
-impl<T> Rc<T> {
+impl<T: marker::Leak> Rc<T> {
     /// Constructs a new `Rc<T>`.
     ///
     /// # Examples
@@ -205,18 +205,38 @@ impl<T> Rc<T> {
     /// ```
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn new(value: T) -> Rc<T> {
-        unsafe {
-            Rc {
-                // there is an implicit weak pointer owned by all the strong
-                // pointers, which ensures that the weak destructor never frees
-                // the allocation while the strong destructor is running, even
-                // if the weak pointer is stored inside the strong one.
-                _ptr: NonZero::new(boxed::into_raw(box RcBox {
-                    value: value,
-                    strong: Cell::new(1),
-                    weak: Cell::new(1)
-                })),
-            }
+        unsafe { Rc::new_leak(value) }
+    }
+}
+
+impl<T> Rc<T> {
+    /// Constructs a new `Rc<T>` for any `T`, even if leaking `T` is unsafe.
+    ///
+    /// To maintain memory safety, you must ensure that any values placed in
+    /// an `Rc` this way do not participate in any leaked cycles. Notably, this
+    /// includes being present in a cycle at any time when all of the `Rc`s may
+    /// be dropped, for instance at the site of a `panic!`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::rc::Rc;
+    /// use std::thread;
+    ///
+    /// // Safe, since guard does not participate in a cycle.
+    /// let guard = unsafe { Rc::new_leak(thread::scoped(|| 7)); }
+    /// ```
+    pub unsafe fn new_leak(value: T) -> Rc<T> {
+        Rc {
+            // there is an implicit weak pointer owned by all the strong
+            // pointers, which ensures that the weak destructor never frees
+            // the allocation while the strong destructor is running, even
+            // if the weak pointer is stored inside the strong one.
+            _ptr: NonZero::new(boxed::into_raw(box RcBox {
+                value: value,
+                strong: Cell::new(1),
+                weak: Cell::new(1)
+            })),
         }
     }
 
@@ -353,7 +373,7 @@ impl<T: Clone> Rc<T> {
     #[unstable(feature = "alloc")]
     pub fn make_unique(&mut self) -> &mut T {
         if !is_unique(self) {
-            *self = Rc::new((**self).clone())
+            *self = unsafe { Rc::new_leak((**self).clone()) }
         }
         // This unsafety is ok because we're guaranteed that the pointer
         // returned is the *only* pointer that will ever be returned to T. Our
@@ -452,7 +472,7 @@ impl<T> Clone for Rc<T> {
 }
 
 #[stable(feature = "rust1", since = "1.0.0")]
-impl<T: Default> Default for Rc<T> {
+impl<T: Default + Leak> Default for Rc<T> {
     /// Creates a new `Rc<T>`, with the `Default` value for `T`.
     ///
     /// # Examples
