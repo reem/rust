@@ -195,7 +195,7 @@ use any::Any;
 use cell::UnsafeCell;
 use fmt;
 use io;
-use marker::PhantomData;
+use marker::{Leak, PhantomData};
 use rt::{self, unwind};
 use sync::{Mutex, Condvar, Arc};
 use sys::thread as imp;
@@ -320,7 +320,7 @@ impl Builder {
         let my_thread = Thread::new(name);
         let their_thread = my_thread.clone();
 
-        let my_packet = Arc::new(UnsafeCell::new(None));
+        let my_packet = Arc::new_leak(UnsafeCell::new(None));
         let their_packet = my_packet.clone();
 
         // Spawning a new OS thread guarantees that __morestack will never get
@@ -676,6 +676,7 @@ pub struct JoinGuard<'a, T: Send + 'a> {
 
 #[stable(feature = "rust1", since = "1.0.0")]
 unsafe impl<'a, T: Send + 'a> Sync for JoinGuard<'a, T> {}
+impl<'a, T> !Leak for JoinGuard<'a, T> {}
 
 impl<'a, T: Send + 'a> JoinGuard<'a, T> {
     /// Extracts a handle to the thread this guard will join on.
