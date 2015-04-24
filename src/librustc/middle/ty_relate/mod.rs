@@ -17,6 +17,7 @@ use middle::subst::{ErasedRegions, NonerasedRegions, ParamSpace, Substs};
 use middle::ty::{self, Ty};
 use middle::ty_fold::TypeFoldable;
 use std::rc::Rc;
+use std::marker::Leak;
 use syntax::abi;
 use syntax::ast;
 use util::ppaux::Repr;
@@ -597,7 +598,7 @@ impl<'a,'tcx:'a,T> Relate<'a,'tcx> for ty::Binder<T>
 }
 
 impl<'a,'tcx:'a,T> Relate<'a,'tcx> for Rc<T>
-    where T: Relate<'a,'tcx>
+    where T: Relate<'a,'tcx> + Leak
 {
     fn relate<R>(relation: &mut R,
                  a: &Rc<T>,

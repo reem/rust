@@ -39,6 +39,7 @@ use middle::subst::VecPerParamSpace;
 use middle::ty::{self, Ty};
 use middle::traits;
 use std::rc::Rc;
+use std::marker::Leak;
 use syntax::abi;
 use syntax::ast;
 use syntax::owned_slice::OwnedSlice;
@@ -177,7 +178,7 @@ impl<'tcx, T: TypeFoldable<'tcx>> TypeFoldable<'tcx> for Option<T> {
     }
 }
 
-impl<'tcx, T: TypeFoldable<'tcx>> TypeFoldable<'tcx> for Rc<T> {
+impl<'tcx, T: TypeFoldable<'tcx> + Leak> TypeFoldable<'tcx> for Rc<T> {
     fn fold_with<F: TypeFolder<'tcx>>(&self, folder: &mut F) -> Rc<T> {
         Rc::new((**self).fold_with(folder))
     }

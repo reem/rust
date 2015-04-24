@@ -18,6 +18,7 @@ use std::path;
 use std::rc::Rc;
 use std::cell::{Cell, RefCell};
 use std::sync::Arc;
+use std::marker::Leak;
 
 pub trait Encoder {
     type Error;
@@ -428,7 +429,7 @@ impl<T:Encodable> Encodable for Rc<T> {
     }
 }
 
-impl<T:Decodable> Decodable for Rc<T> {
+impl<T: Decodable + Leak> Decodable for Rc<T> {
     #[inline]
     fn decode<D: Decoder>(d: &mut D) -> Result<Rc<T>, D::Error> {
         Ok(Rc::new(try!(Decodable::decode(d))))
@@ -586,7 +587,7 @@ impl<T:Encodable> Encodable for Arc<T> {
     }
 }
 
-impl<T:Decodable+Send+Sync> Decodable for Arc<T> {
+impl<T:Decodable+Send+Sync+Leak> Decodable for Arc<T> {
     fn decode<D: Decoder>(d: &mut D) -> Result<Arc<T>, D::Error> {
         Ok(Arc::new(try!(Decodable::decode(d))))
     }

@@ -30,6 +30,9 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::default::Default;
 
+#[cfg(not(stage0))]
+use std::marker::Leak;
+
 pub trait ItemDecorator {
     fn expand(&self,
               ecx: &mut ExtCtxt,
@@ -399,14 +402,23 @@ pub enum SyntaxExtension {
     /// based upon it.
     ///
     /// `#[derive(...)]` is an `ItemDecorator`.
+    #[cfg(not(stage0))]
+    Decorator(Box<ItemDecorator + Leak>),
+    #[cfg(stage0)]
     Decorator(Box<ItemDecorator + 'static>),
 
     /// A syntax extension that is attached to an item and modifies it
     /// in-place.
+    #[cfg(not(stage0))]
+    Modifier(Box<ItemModifier + Leak>),
+    #[cfg(stage0)]
     Modifier(Box<ItemModifier + 'static>),
 
     /// A syntax extension that is attached to an item and modifies it
     /// in-place. More flexible version than Modifier.
+    #[cfg(not(stage0))]
+    MultiModifier(Box<MultiItemModifier + Leak>),
+    #[cfg(stage0)]
     MultiModifier(Box<MultiItemModifier + 'static>),
 
     /// A normal, function-like syntax extension.
@@ -415,11 +427,17 @@ pub enum SyntaxExtension {
     ///
     /// The `bool` dictates whether the contents of the macro can
     /// directly use `#[unstable]` things (true == yes).
+    #[cfg(not(stage0))]
+    NormalTT(Box<TTMacroExpander + Leak>, Option<Span>, bool),
+    #[cfg(stage0)]
     NormalTT(Box<TTMacroExpander + 'static>, Option<Span>, bool),
 
     /// A function-like syntax extension that has an extra ident before
     /// the block.
     ///
+    #[cfg(not(stage0))]
+    IdentTT(Box<IdentMacroExpander + Leak>, Option<Span>, bool),
+    #[cfg(stage0)]
     IdentTT(Box<IdentMacroExpander + 'static>, Option<Span>, bool),
 
     /// Represents `macro_rules!` itself.
@@ -880,6 +898,12 @@ impl SyntaxEnv {
         None
     }
 
+    #[cfg(stage0)]
+    pub fn insert(&mut self, k: Name, v: SyntaxExtension) {
+        self.find_escape_frame().map.insert(k, unsafe { Rc::new_leak(v) });
+    }
+
+    #[cfg(not(stage0))]
     pub fn insert(&mut self, k: Name, v: SyntaxExtension) {
         self.find_escape_frame().map.insert(k, Rc::new(v));
     }

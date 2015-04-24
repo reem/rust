@@ -15,7 +15,8 @@
 //! This API is completely unstable and subject to change.
 
 // Do not remove on snapshot creation. Needed for bootstrap. (Issue #22364)
-#![cfg_attr(stage0, feature(custom_attribute))]
+#![cfg_attr(stage0, feature(custom_attribute, alloc))]
+#![cfg_attr(not(stage0), feature(leak))]
 #![crate_name = "syntax"]
 #![unstable(feature = "rustc_private")]
 #![staged_api]
