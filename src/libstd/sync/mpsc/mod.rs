@@ -270,6 +270,7 @@ use prelude::v1::*;
 use sync::Arc;
 use error;
 use fmt;
+use marker::Leak;
 use mem;
 use cell::UnsafeCell;
 
@@ -445,7 +446,7 @@ impl<T> UnsafeFlavor<T> for Receiver<T> {
 /// ```
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
-    let a = Arc::new(UnsafeCell::new(oneshot::Packet::new()));
+    let a = unsafe { Arc::new_leak(UnsafeCell::new(oneshot::Packet::new())) };
     (Sender::new(Flavor::Oneshot(a.clone())), Receiver::new(Flavor::Oneshot(a)))
 }
 
@@ -485,7 +486,7 @@ pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
 /// ```
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn sync_channel<T>(bound: usize) -> (SyncSender<T>, Receiver<T>) {
-    let a = Arc::new(UnsafeCell::new(sync::Packet::new(bound)));
+    let a = unsafe { Arc::new_leak(UnsafeCell::new(sync::Packet::new(bound))) };
     (SyncSender::new(a.clone()), Receiver::new(Flavor::Sync(a)))
 }
 
@@ -537,7 +538,7 @@ impl<T> Sender<T> {
                         return (*p).send(t).map_err(SendError);
                     } else {
                         let a =
-                            Arc::new(UnsafeCell::new(stream::Packet::new()));
+                            Arc::new_leak(UnsafeCell::new(stream::Packet::new()));
                         let rx = Receiver::new(Flavor::Stream(a.clone()));
                         match (*p).upgrade(rx) {
                             oneshot::UpSuccess => {
@@ -575,7 +576,7 @@ impl<T> Sender<T> {
 }
 
 #[stable(feature = "rust1", since = "1.0.0")]
-impl<T> Clone for Sender<T> {
+impl<T: Leak> Clone for Sender<T> {
     fn clone(&self) -> Sender<T> {
         let (packet, sleeper, guard) = match *unsafe { self.inner() } {
             Flavor::Oneshot(ref p) => {
@@ -676,7 +677,7 @@ impl<T> SyncSender<T> {
 }
 
 #[stable(feature = "rust1", since = "1.0.0")]
-impl<T> Clone for SyncSender<T> {
+impl<T: Leak> Clone for SyncSender<T> {
     fn clone(&self) -> SyncSender<T> {
         unsafe { (*self.inner.get()).clone_chan(); }
         return SyncSender::new(self.inner.clone());
